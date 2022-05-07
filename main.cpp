@@ -10,12 +10,16 @@
 class Doc
 {
 private:
-	std::string					file_name;
+	std::string					fileName;
+	std::vector<std::string>	extraFiles;
 	std::string					className;
 	std::vector<std::string>	methodTests;
 public:
-	Doc(std::string file_name){
-		this->file_name = file_name;
+	Doc(std::string file_name, char *extra_files[]){
+		for (int i = 0; extra_files[i]; i++){
+			this->extraFiles.push_back(extra_files[i]);
+		}
+		this->fileName = file_name;
 	}
 	~Doc(){
 
@@ -37,7 +41,7 @@ public:
 	void	findClassName(){
 		std::fstream	file;
 	
-		file.open(file_name.c_str());
+		file.open(fileName.c_str());
 		std::string line;
 		std::size_t index;
 		while (getline(file, line)){
@@ -58,7 +62,7 @@ public:
 	}
 	void	findMethodTests(){
 		std::fstream	file;
-		file.open(file_name.c_str());
+		file.open(fileName.c_str());
 		std::string line;
 		std::size_t index;
 		while (getline(file, line)){
@@ -79,7 +83,7 @@ public:
 		std::fstream	mainTemplate;
 
 		mainTemplate.open("doc_tmp_main_template.cpp", std::ios_base::out);
-		mainTemplate << "#include \"" << this->file_name << "\"" << std::endl;
+		mainTemplate << "#include \"" << this->fileName << "\"" << std::endl;
 		mainTemplate << "int main(){" << std::endl;
 		mainTemplate << "\t" << this->className << " tmp;" << std::endl;
 		for (std::vector<std::string>::iterator i = this->methodTests.begin(); i != this->methodTests.end(); i++){
@@ -102,7 +106,7 @@ public:
 		if (pid == 0)
 		{
 			char *argv[1] = {NULL};
-			std::cout << execv("./doc_tmp_main_template.o", argv);
+			std::cout << execv("./doc_tmp_main_template", argv);
 		}
 		wait(NULL);
 	}
@@ -112,16 +116,19 @@ public:
 
 		if (pid == 0)
 		{
-			char **argv = new char*[5];
-			argv[0] = new char[100]; 
-			argv[1] = new char[100]; 
-			argv[2] = new char[100]; 
-			argv[3] = new char[100]; 
-			argv[4] = NULL;
+			char **argv = new char*[5 + this->extraFiles.size()];
+			for (int i = 0; i < 4 + this->extraFiles.size(); i ++)
+				argv[i] = new char[1024]; 
 			strcpy(argv[0], "c++");
 			strcpy(argv[1], "doc_tmp_main_template.cpp");
-			strcpy(argv[2], "-o");
-			strcpy(argv[3], "doc_tmp_main_template.o");
+			int index = 2;
+			for (std::vector<std::string>::iterator iterator = this->extraFiles.begin(); iterator != this->extraFiles.end(); iterator++){
+				strcpy(argv[index], iterator->c_str());
+				index++;
+			}
+			strcpy(argv[index], "-o");
+			strcpy(argv[++index], "doc_tmp_main_template");
+			argv[++index] = NULL;
 			std::cout << execv("/usr/bin/c++", argv);
 		}
 		wait(NULL);
@@ -130,7 +137,7 @@ public:
 
 	void removeTemps(){
 		remove("doc_tmp_main_template.cpp");
-		remove("doc_tmp_main_template.o");
+		remove("doc_tmp_main_template");
 	}
 };
 
@@ -138,6 +145,6 @@ public:
 int main(int argc, char *argv[]){
 	if (argc < 2)
 		return 0;
-	Doc doc(argv[1]);
+	Doc doc(argv[1], &argv[2]);
 	doc.run();
 }

@@ -31,18 +31,19 @@ public:
 	}
 
 	Test *name(std::string str){
-		this->_name = Color::blue;
-		this->_name.append(str); 
-		this->_name.append(Color::white);
+		this->_name = str;
+		// this->_name.append(str); 
+		// this->_name.append(Color::white);
 		return this;
 	}
 	
 	template<typename type1, typename type2>
 	void assertEqual(type1 value1, type2 value2){
 		if (value1 == value2){
-			std::cout << "\t" << this->_name << " "<< Color::green  <<  "OK! " << value1 << " equals to " << value2 <<"\n" << Color::white;
+			std::cout << Color::green << this->_name << "\n" << Color::white;
+			// std::cout << "" << this->_name << ": "<< Color::green  <<  "\n\t\tOK! " << value1 << " equals to " << value2 <<"\n" << Color::white;
 		}else{
-			std::cout << "\t" << this->_name << " "  << Color::red << "KO! expected " << value1 << " to be " << value2 << "\n" << Color::white;
+			std::cout << Color::red << this->_name << ": "  << Color::red << "\n\t\tKO! expected " << value1 << " to be " << value2 << "\n" << Color::white;
 		}
 	}
 };
